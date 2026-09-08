@@ -230,15 +230,18 @@
         .input-wrapper { position: relative; flex: 1.2; display: flex; align-items: center; }
         .input-suffix { position: absolute; right: 12px; color: #8e8e93; font-size: 1.1rem; font-weight: 600; pointer-events: none; }
 
-        input {
+        input, select {
             width: 100%; padding: 12px; background-color: transparent;
             border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 8px;
             color: #ffffff; font-size: 1rem; box-sizing: border-box;
             transition: background-color 0.2s, border-color 0.2s; font-family: 'Bookman', serif;
         }
         #expense-amount, #edit-expense-amount { text-align: right; padding-right: 30px; }
-        input:focus { outline: none; border-color: rgba(255, 255, 255, 0.45); background-color: rgba(255, 255, 255, 0.05); }
+        input:focus, select:focus { outline: none; border-color: rgba(255, 255, 255, 0.45); background-color: rgba(255, 255, 255, 0.05); }
         ::placeholder { color: #8e8e93; font-size: 0.85rem; }
+        
+        /* This fades the project dropdown text before a choice is made */
+        select:invalid { color: #8e8e93; }
 
         .action-box {
             background-color: transparent; border: 1px solid rgba(255, 255, 255, 0.25);
@@ -278,6 +281,7 @@
         .item-details { display: flex; flex-direction: column; flex: 1; min-width: 0; padding-right: 15px; }
         .item-name { color: #ffffff; font-weight: 500; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; line-height: 1.3; }
         .item-timestamp { font-size: 0.75rem; color: #8e8e93; margin-top: 4px; }
+        .item-project-badge { font-size: 0.75rem; color: #0ea5e9; margin-left: 5px; font-weight: 600;}
         .item-right { display: flex; align-items: center; gap: 15px; flex-shrink: 0; }
         .item-amount { color: #ff6b6b; font-weight: 600; white-space: nowrap; }
         .action-buttons { display: flex; align-items: center; gap: 10px; }
@@ -565,7 +569,18 @@
                         <input type="text" inputmode="decimal" id="expense-amount" placeholder="Amount" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" data-lpignore="true" data-form-type="other">
                         <span class="input-suffix">৳</span>
                     </div>
-
+                </div>
+                
+                <!-- NEW PROJECT SELECT BOX -->
+                <div class="input-row">
+                    <select id="expense-project" required>
+                        <option value="" disabled selected hidden>Select Project</option>
+                        <option value="Main" style="color: #000;">Main</option>
+                        <option value="Reacts In" style="color: #000;">Reacts In</option>
+                        <option value="GAC-ENFS" style="color: #000;">GAC-ENFS</option>
+                        <option value="NAF Official" style="color: #000;">NAF Official</option>
+                        <option value="NAF Business" style="color: #000;">NAF Business</option>
+                    </select>
                 </div>
 
                 <button class="btn-main" onclick="addExpense()">Add Entry</button>
@@ -687,6 +702,17 @@
                             <span class="input-suffix">৳</span>
                         </div>
                     </div>
+                    <div>
+                        <div class="word-label" style="font-size: 0.85rem; margin-bottom: 8px;">Project</div>
+                        <select id="edit-expense-project" required>
+                            <option value="" disabled selected hidden>Select Project</option>
+                            <option value="Main" style="color: #000;">Main</option>
+                            <option value="Reacts In" style="color: #000;">Reacts In</option>
+                            <option value="GAC-ENFS" style="color: #000;">GAC-ENFS</option>
+                            <option value="NAF Official" style="color: #000;">NAF Official</option>
+                            <option value="NAF Business" style="color: #000;">NAF Business</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="modal-button-col">
                     <button class="btn-main" onclick="saveEditedExpense()" style="background-color: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.7);">Save Changes</button>
@@ -793,6 +819,7 @@
         
         const expenseName = document.getElementById('expense-name');
         const expenseAmount = document.getElementById('expense-amount');
+        const expenseProject = document.getElementById('expense-project');
         const entryCustomDate = document.getElementById('entry-custom-date');
         const entryCalWrapper = document.getElementById('entry-cal-wrapper');
         const expenseList = document.getElementById('expense-list');
@@ -1209,11 +1236,12 @@
                     const nameColor = isBudget ? 'color: #34c759;' : 'color: #ffffff;';
                     const amtColor = isBudget ? 'color: #34c759;' : 'color: #ffffff;';
                     const prefix = isBudget ? '+' : '-';
+                    const projectDisplay = item.project ? `<span style="font-size: 0.75rem; color: #0ea5e9; margin-left: 5px;">[${item.project}]</span>` : '';
 
                     list.innerHTML += `
                         <div class="preview-item-row" style="align-items: flex-start; ${isBudget ? 'background-color: rgba(52, 199, 89, 0.05); padding-left: 5px; padding-right: 5px;' : ''}">
                             <div style="flex:1; min-width: 0; padding-right: 15px;">
-                                <div style="${nameColor} font-weight: 500; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">${item.name}</div>
+                                <div style="${nameColor} font-weight: 500; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">${item.name} ${projectDisplay}</div>
                                 <div style="font-size:0.75rem; color:#8e8e93; margin-top: 4px;">${item.timestamp}</div>
                             </div>
                             <div style="${amtColor} font-weight:600; white-space: nowrap; flex-shrink: 0; padding-top: 2px;">${prefix} ${formatMoney(item.amount)} ৳</div>
@@ -1291,6 +1319,7 @@
                     <div style="width: 40px; text-align: center;">SL</div>
                     <div style="flex: 1; padding: 0 10px;">Description of Transactions</div>
                     <div style="width: 100px; text-align: right;">Amount</div>
+                    <div style="width: 70px; text-align: right; padding-left: 10px;">Project</div>
                 </div>
             `;
 
@@ -1313,6 +1342,9 @@
                     </div>
                     <div style="width: 100px; text-align: right; font-weight: bold; font-size: 0.85rem; ${amtColor}">
                         ${prefix} ${formatMoney(item.amount)} ৳
+                    </div>
+                    <div style="width: 70px; text-align: right; padding-left: 10px; font-size: 0.75rem; color: #555;">
+                        ${item.project || '-'}
                     </div>
                 `;
 
@@ -1549,6 +1581,10 @@
             autoSaveToLocalStorage(); 
         });
 
+        expenseProject.addEventListener('change', () => {
+            autoSaveToLocalStorage(); 
+        });
+
         expenseName.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') addExpense();
         });
@@ -1583,6 +1619,7 @@
         function clearEntryBox(skipSave = false) {
             expenseName.value = '';
             expenseAmount.value = '';
+            expenseProject.selectedIndex = 0; 
             entryCustomDate.value = '';
             markCustomDate(true);
             if (!skipSave) autoSaveToLocalStorage();
@@ -1591,6 +1628,7 @@
         function addExpense() {
             const name = expenseName.value.trim();
             let amount = parseDynamicNumber(expenseAmount.value);
+            let project = expenseProject.value; 
 
             if (name === '' || amount <= 0) {
                 alert('Please enter a valid expense name and amount.');
@@ -1607,7 +1645,8 @@
             const currentItem = { 
                 id: Date.now() + Math.floor(Math.random() * 1000), 
                 name, 
-                amount, 
+                amount,
+                project, 
                 timestamp,
                 entryTime: dateToUse.getTime()
             };
@@ -1642,6 +1681,12 @@
                 document.getElementById('edit-expense-amount').value = item.amount.toString();
                 formatInputField(document.getElementById('edit-expense-amount')); 
                 
+                if (item.project) {
+                    document.getElementById('edit-expense-project').value = item.project;
+                } else {
+                    document.getElementById('edit-expense-project').selectedIndex = 0;
+                }
+                
                 document.getElementById('edit-modal').style.display = 'flex';
             }
         }
@@ -1659,10 +1704,12 @@
                 const newName = document.getElementById('edit-expense-name').value.trim();
                 const newAmountStr = document.getElementById('edit-expense-amount').value;
                 const newAmount = parseDynamicNumber(newAmountStr);
+                const newProject = document.getElementById('edit-expense-project').value;
 
                 if (newName !== '' && newAmount > 0) {
                     expensesArray[index].name = newName;
                     expensesArray[index].amount = newAmount;
+                    expensesArray[index].project = newProject;
 
                     renderAllExpenses();
                     updateAppCalculations();
@@ -1730,9 +1777,11 @@
                 const li = document.createElement('li');
                 li.className = 'expense-item';
                 
+                const projectDisplay = item.project ? `<span class="item-project-badge">[${item.project}]</span>` : '';
+
                 li.innerHTML = `
                     <div class="item-details">
-                        <span class="item-name">${item.name}</span>
+                        <span class="item-name">${item.name} ${projectDisplay}</span>
                         <span class="item-timestamp">${item.timestamp}</span>
                     </div>
                     <div class="item-right">
@@ -1846,6 +1895,7 @@
                 globalResetTime, 
                 draftName: expenseName.value,
                 draftAmount: expenseAmount.value,
+                draftProject: expenseProject.value,
                 draftDate: entryCustomDate.value,
                 selectedMonthFilter: document.getElementById('month-filter').value 
             }));
@@ -1886,6 +1936,9 @@
 
                     expenseName.value = data.draftName || '';
                     expenseAmount.value = data.draftAmount || '';
+                    if (data.draftProject) {
+                        expenseProject.value = data.draftProject;
+                    }
                     entryCustomDate.value = data.draftDate || '';
                     markCustomDate(true); 
 
@@ -1935,6 +1988,7 @@
                 
                 expenseName.value = '';
                 expenseAmount.value = '';
+                expenseProject.selectedIndex = 0;
                 entryCustomDate.value = '';
                 markCustomDate(true); 
                 document.getElementById('month-filter').value = 'all'; 
